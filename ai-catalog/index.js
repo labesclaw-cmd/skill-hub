@@ -1,15 +1,15 @@
 /**
- * ai-catalog skill — OpenClaw callable interface
- * Usage: require('~/skill-hub/ai-catalog')
+ * ai-catalog skill — agent-callable interface
+ * Usage: const catalog = require('./ai-catalog')
  */
 
 const fs   = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
 
-const CATALOG = path.join(process.env.HOME, 'skill-hub/ai-tools-catalog.md');
 const GENERATE = path.join(__dirname, 'bin/generate.py');
 const ADD_SH   = path.join(__dirname, 'bin/catalog-add.sh');
+const CONFIG   = path.join(__dirname, 'config.json');
 
 const STATUS_LABELS = {
   installed: '✅ 已安裝',
@@ -18,8 +18,25 @@ const STATUS_LABELS = {
   blocked:   '❌ 無法使用',
 };
 
+function loadConfig() {
+  try { return JSON.parse(fs.readFileSync(CONFIG, 'utf8')); }
+  catch { return {}; }
+}
+
+function resolveCatalogPath() {
+  const cfg = loadConfig();
+  const rel = cfg.catalog_file || 'ai-tools-catalog.md';
+  return path.isAbsolute(rel) ? rel : path.join(__dirname, rel);
+}
+
+function sanitize(str) {
+  // Strip shell metacharacters to prevent injection
+  return String(str).replace(/[`$\\;|&<>(){}!]/g, '').slice(0, 200);
+}
+
 function readCatalog() {
-  const text = fs.readFileSync(CATALOG, 'utf8');
+  const catalogPath = resolveCatalogPath();
+  const text = fs.readFileSync(catalogPath, 'utf8');
   const agents = [];
   let currentAgent = null, currentSection = null;
 
@@ -60,25 +77,31 @@ function readCatalog() {
 module.exports = {
   /**
    * 新增工具到目錄
-   * @param {string} name - 工具名稱
-   * @param {string} agentKey - agent 關鍵字 (claude/openclaw/hermes/通用)
+   * @param {string} name       - 工具名稱
+   * @param {string} agentKey   - agent 關鍵字（對應 config.json agents[].label）
    * @param {string} sectionKey - 子分類關鍵字
-   * @param {string} status - installed/pending/review/blocked
-   * @param {string} feature - 功能描述
-   * @param {string} [cost] - 費用
-   * @param {string} [note] - 備註
+   * @param {string} status     - installed / pending / review / blocked
+   * @param {string} feature    - 功能描述
+   * @param {string} [cost]     - 費用
+   * @param {string} [note]     - 備註
    */
   add(name, agentKey, sectionKey, status, feature, cost = '', note = '') {
-    const statusLabel = STATUS_LABELS[status] || status;
-    try {
-      execSync(`bash "${ADD_SH}" "${name}" "${agentKey}" "${sectionKey}" "${status}" "${feature}" "${cost}" "${note}"`, {
-        encoding: 'utf8',
-        env: { ...process.env },
-      });
+    // Use spawnSync with argument array — no shell interpolation, no injection risk
+    const result = spawnSync('bash', [
+      ADD_SH,
+      sanitize(name),
+      sanitize(agentKey),
+      sanitize(sectionKey),
+      sanitize(status),
+      sanitize(feature),
+      sanitize(cost),
+      sanitize(note),
+    ], { encoding: 'utf8' });
+
+    if (result.status === 0) {
       return { ok: true, message: `已新增 ${name}` };
-    } catch (e) {
-      return { ok: false, message: e.stderr || e.message };
     }
+    return { ok: false, message: result.stderr || result.stdout || 'unknown error' };
   },
 
   /**
@@ -106,13 +129,13 @@ module.exports = {
 
   /** 重新生成 HTML */
   regenerate() {
-    try {
-      const out = execSync(`python3 "${GENERATE}"`, { encoding: 'utf8' });
-      return { ok: true, message: out.trim() };
-    } catch (e) {
-      return { ok: false, message: e.stderr || e.message };
-    }
+    const result = spawnSync('python3', [GENERATE], { encoding: 'utf8' });
+    if (result.status === 0) return { ok: true, message: result.stdout.trim() };
+    return { ok: false, message: result.stderr || 'generate failed' };
   },
+
+  /** 取得 config */
+  config: loadConfig,
 
   /** 取得所有 agent 名稱 */
   agents() {

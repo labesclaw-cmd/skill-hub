@@ -1,0 +1,17 @@
+{
+  "agents": [
+    {
+      "id": "claude",
+      "label": "🖥️ Claude",
+      "description": "Claude Code skills, MCP tools, automations"
+    },
+    {
+      "id": "general",
+      "label": "🌐 通用工具",
+      "description": "General AI tools and services"
+    }
+  ],
+  "catalog_file": "ai-tools-catalog.md",
+  "output_file": "~/Desktop/AI工具目錄.html",
+  "language": "zh-TW"
+}
