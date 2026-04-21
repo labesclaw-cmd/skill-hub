@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-"""
-ai-catalog generator
-把 catalog.md 轉換成桌面 HTML 快速查閱頁面
-"""
+"""ai-catalog generator — parses catalog.md → tabbed desktop HTML"""
 
-import re, json, os, sys
+import re, os, sys
 from datetime import datetime
 
 CATALOG_FILE = os.path.expanduser("~/skill-hub/ai-tools-catalog.md")
@@ -18,20 +15,27 @@ STATUS_MAP = {
 }
 
 def parse_catalog(path):
-    sections = []
-    current = None
+    agents = []
+    current_agent = None
+    current_section = None
+
     with open(path, encoding="utf-8") as f:
         lines = f.readlines()
 
     for line in lines:
         line = line.rstrip()
-        # 二級標題 = 分類
-        if line.startswith("## "):
-            if current:
-                sections.append(current)
-            current = {"title": line[3:].strip(), "tools": []}
-        # 表格資料行
-        elif current and line.startswith("|") and not line.startswith("| 工具") and not line.startswith("|---"):
+        if line.startswith("## ") and not line.startswith("## 狀態"):
+            if current_agent:
+                if current_section and current_section["tools"]:
+                    current_agent["sections"].append(current_section)
+                agents.append(current_agent)
+            current_agent = {"title": line[3:].strip(), "sections": []}
+            current_section = None
+        elif line.startswith("### ") and current_agent:
+            if current_section and current_section["tools"]:
+                current_agent["sections"].append(current_section)
+            current_section = {"title": line[4:].strip(), "tools": []}
+        elif current_section and line.startswith("|") and not re.match(r"\|\s*工具", line) and not line.startswith("|---"):
             cols = [c.strip() for c in line.split("|")[1:-1]]
             if len(cols) >= 3:
                 name    = re.sub(r"\*\*(.+?)\*\*", r"\1", cols[0])
@@ -40,42 +44,61 @@ def parse_catalog(path):
                 cost    = cols[3] if len(cols) > 3 else ""
                 note    = cols[-1] if len(cols) > 4 else ""
                 status_key = next((k for k in STATUS_MAP if k in status), "")
-                current["tools"].append({
+                current_section["tools"].append({
                     "name": name, "status": status,
                     "status_key": STATUS_MAP.get(status_key, ("", ""))[0],
                     "status_label": STATUS_MAP.get(status_key, ("", status))[1],
                     "feature": feature, "cost": cost, "note": note
                 })
 
-    if current:
-        sections.append(current)
-    return sections
+    if current_agent:
+        if current_section and current_section["tools"]:
+            current_agent["sections"].append(current_section)
+        agents.append(current_agent)
 
-def generate_html(sections):
+    return agents
+
+def make_tab_id(title):
+    return re.sub(r"[^\w]", "", title)
+
+def generate_html(agents):
     updated = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    cards_html = ""
-    for sec in sections:
-        if not sec["tools"]:
+    tab_buttons = ""
+    tab_contents = ""
+
+    for i, agent in enumerate(agents):
+        if not any(s["tools"] for s in agent["sections"]):
             continue
-        tools_html = ""
-        for t in sec["tools"]:
-            tools_html += f"""
-            <div class="tool-card {t['status_key']}">
-                <div class="tool-header">
-                    <span class="tool-name">{t['name']}</span>
-                    <span class="badge {t['status_key']}">{t['status_label']}</span>
-                </div>
-                <div class="tool-feature">{t['feature']}</div>
-                {"<div class='tool-cost'>💰 " + t['cost'] + "</div>" if t['cost'] else ""}
-                {"<div class='tool-note'>📌 " + t['note'] + "</div>" if t['note'] else ""}
+        tab_id = make_tab_id(agent["title"])
+        active = "active" if i == 0 else ""
+        tab_buttons += f'<button class="tab-btn {active}" onclick="switchTab(\'{tab_id}\', this)">{agent["title"]}</button>\n'
+
+        sections_html = ""
+        for sec in agent["sections"]:
+            if not sec["tools"]:
+                continue
+            tools_html = ""
+            for t in sec["tools"]:
+                tools_html += f"""
+                <div class="tool-card {t['status_key']}" data-text="{t['name'].lower()} {t['feature'].lower()} {t['note'].lower()}">
+                    <div class="tool-header">
+                        <span class="tool-name">{t['name']}</span>
+                        <span class="badge {t['status_key']}">{t['status_label']}</span>
+                    </div>
+                    <div class="tool-feature">{t['feature']}</div>
+                    {"<div class='tool-cost'>💰 " + t['cost'] + "</div>" if t['cost'] else ""}
+                    {"<div class='tool-note'>📌 " + t['note'] + "</div>" if t['note'] else ""}
+                </div>"""
+
+            sections_html += f"""
+            <div class="section">
+                <h3>{sec['title']}</h3>
+                <div class="tools-grid">{tools_html}</div>
             </div>"""
 
-        cards_html += f"""
-        <div class="section">
-            <h2>{sec['title']}</h2>
-            <div class="tools-grid">{tools_html}</div>
-        </div>"""
+        display = "block" if i == 0 else "none"
+        tab_contents += f'<div class="tab-content" id="tab-{tab_id}" style="display:{display}">{sections_html}</div>\n'
 
     return f"""<!DOCTYPE html>
 <html lang="zh-TW">
@@ -88,10 +111,32 @@ def generate_html(sections):
   body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
          background: #0f1117; color: #e2e8f0; padding: 24px; }}
   h1 {{ font-size: 28px; color: #a78bfa; margin-bottom: 4px; }}
-  .updated {{ font-size: 12px; color: #64748b; margin-bottom: 32px; }}
-  .section {{ margin-bottom: 36px; }}
-  .section h2 {{ font-size: 18px; color: #94a3b8; border-bottom: 1px solid #1e293b;
-                 padding-bottom: 8px; margin-bottom: 16px; }}
+  .updated {{ font-size: 12px; color: #64748b; margin-bottom: 20px; }}
+
+  /* 搜尋 */
+  .search-bar {{ width: 100%; max-width: 400px; padding: 10px 16px;
+                 background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+                 color: #e2e8f0; font-size: 14px; margin-bottom: 16px; outline: none; }}
+  .search-bar:focus {{ border-color: #a78bfa; }}
+
+  /* 篩選 */
+  .filters {{ display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }}
+  .filter-btn {{ padding: 6px 14px; border-radius: 99px; font-size: 13px; cursor: pointer;
+                 background: #1e293b; border: 1px solid #334155; color: #94a3b8; }}
+  .filter-btn.active {{ background: #a78bfa; color: #fff; border-color: #a78bfa; }}
+
+  /* Tabs */
+  .tabs {{ display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid #1e293b; padding-bottom: 0; flex-wrap: wrap; }}
+  .tab-btn {{ padding: 10px 20px; border-radius: 8px 8px 0 0; font-size: 14px; cursor: pointer;
+              background: #1e293b; border: 1px solid #334155; border-bottom: none; color: #94a3b8;
+              position: relative; bottom: -1px; }}
+  .tab-btn.active {{ background: #0f1117; border-color: #334155; border-bottom-color: #0f1117; color: #a78bfa; font-weight: 600; }}
+  .tab-btn:hover:not(.active) {{ color: #e2e8f0; }}
+
+  /* Sections */
+  .section {{ margin-bottom: 32px; }}
+  .section h3 {{ font-size: 15px; color: #94a3b8; border-bottom: 1px solid #1e293b;
+                 padding-bottom: 8px; margin-bottom: 14px; }}
   .tools-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }}
   .tool-card {{ background: #1e293b; border-radius: 10px; padding: 14px;
                 border-left: 4px solid #334155; transition: transform .15s; }}
@@ -109,25 +154,14 @@ def generate_html(sections):
   .badge.blocked   {{ background: #450a0a; color: #fca5a5; }}
   .tool-feature {{ font-size: 13px; color: #94a3b8; margin-bottom: 6px; }}
   .tool-cost, .tool-note {{ font-size: 12px; color: #64748b; margin-top: 4px; }}
-
-  /* 搜尋 */
-  .search-bar {{ width: 100%; max-width: 400px; padding: 10px 16px;
-                 background: #1e293b; border: 1px solid #334155; border-radius: 8px;
-                 color: #e2e8f0; font-size: 14px; margin-bottom: 28px; outline: none; }}
-  .search-bar:focus {{ border-color: #a78bfa; }}
-
-  /* 篩選 */
-  .filters {{ display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }}
-  .filter-btn {{ padding: 6px 14px; border-radius: 99px; font-size: 13px; cursor: pointer;
-                 background: #1e293b; border: 1px solid #334155; color: #94a3b8; }}
-  .filter-btn.active {{ background: #a78bfa; color: #fff; border-color: #a78bfa; }}
+  .hidden {{ display: none !important; }}
 </style>
 </head>
 <body>
 <h1>🗂️ AI 工具目錄</h1>
 <div class="updated">最後更新：{updated}</div>
 
-<input class="search-bar" type="text" placeholder="🔍 搜尋工具名稱或功能..." oninput="filterTools(this.value)">
+<input class="search-bar" type="text" placeholder="🔍 搜尋工具名稱或功能（跨 tab 搜尋）..." oninput="searchTools(this.value)">
 
 <div class="filters">
   <button class="filter-btn active" onclick="filterStatus('all', this)">全部</button>
@@ -137,20 +171,50 @@ def generate_html(sections):
   <button class="filter-btn" onclick="filterStatus('blocked', this)">❌ 無法使用</button>
 </div>
 
-<div id="catalog">{cards_html}</div>
+<div class="tabs">
+{tab_buttons}
+</div>
+
+{tab_contents}
 
 <script>
-function filterTools(q) {{
-  q = q.toLowerCase();
-  document.querySelectorAll('.tool-card').forEach(c => {{
-    c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none';
-  }});
+let currentStatus = 'all';
+let currentSearch = '';
+
+function switchTab(id, btn) {{
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).style.display = 'block';
+  btn.classList.add('active');
+  applyFilters();
 }}
+
+function searchTools(q) {{
+  currentSearch = q.toLowerCase();
+  if (currentSearch) {{
+    // 跨 tab 搜尋：顯示所有 tab
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'block');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  }} else {{
+    // 恢復只顯示 active tab
+    const activeBtn = document.querySelector('.tab-btn.active') || document.querySelector('.tab-btn');
+    if (activeBtn) activeBtn.click();
+  }}
+  applyFilters();
+}}
+
 function filterStatus(status, btn) {{
+  currentStatus = status;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  applyFilters();
+}}
+
+function applyFilters() {{
   document.querySelectorAll('.tool-card').forEach(c => {{
-    c.style.display = (status === 'all' || c.classList.contains(status)) ? '' : 'none';
+    const matchStatus = currentStatus === 'all' || c.classList.contains(currentStatus);
+    const matchSearch = !currentSearch || c.dataset.text.includes(currentSearch) || c.textContent.toLowerCase().includes(currentSearch);
+    c.classList.toggle('hidden', !(matchStatus && matchSearch));
   }});
 }}
 </script>
@@ -161,8 +225,8 @@ if __name__ == "__main__":
     if not os.path.exists(CATALOG_FILE):
         print(f"找不到 catalog 檔案：{CATALOG_FILE}")
         sys.exit(1)
-    sections = parse_catalog(CATALOG_FILE)
-    html = generate_html(sections)
+    agents = parse_catalog(CATALOG_FILE)
+    html = generate_html(agents)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"✅ 已生成：{OUTPUT_FILE}")
+    print(f"✅ 已生成：{OUTPUT_FILE}（{len(agents)} 個 Agent tab）")

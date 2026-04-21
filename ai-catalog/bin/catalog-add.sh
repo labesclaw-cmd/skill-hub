@@ -1,37 +1,38 @@
 #!/bin/bash
-# catalog-add.sh — 快速新增工具到 ai-tools-catalog.md 並重新生成 HTML
-# 用法: catalog-add.sh "工具名" "分類" "狀態" "特色" "費用" "備註"
+# catalog-add.sh — 新增工具到 ai-tools-catalog.md 並重新生成 HTML
+# 用法: catalog-add.sh "工具名" "Agent關鍵字" "子分類關鍵字" "狀態" "特色" ["費用"] ["備註"]
 
 CATALOG="$HOME/skill-hub/ai-tools-catalog.md"
 GENERATE="$HOME/skill-hub/ai-catalog/bin/generate.py"
 
 show_usage() {
-  echo "用法: catalog-add.sh <工具名> <分類關鍵字> <狀態> <特色> [費用] [備註]"
+  echo "用法: catalog-add.sh <工具名> <Agent關鍵字> <子分類關鍵字> <狀態> <特色> [費用] [備註]"
   echo ""
-  echo "狀態選項:"
-  echo "  installed  → ✅ 已安裝"
-  echo "  pending    → ⏳ 待處理"
-  echo "  review     → 🔍 待評估"
-  echo "  blocked    → ❌ 無法使用"
+  echo "Agent 關鍵字（部分符合）:"
+  grep "^## " "$CATALOG" | grep -v "狀態" | sed 's/## /  /'
   echo ""
-  echo "分類關鍵字（部分符合即可）:"
-  grep "^## " "$CATALOG" | sed 's/## /  /'
+  echo "子分類關鍵字（部分符合）:"
+  grep "^### " "$CATALOG" | sed 's/### /  /'
+  echo ""
+  echo "狀態: installed / pending / review / blocked"
   echo ""
   echo "範例:"
-  echo "  catalog-add.sh \"Midjourney\" \"圖像\" \"pending\" \"AI圖像生成\" \"\$10/月\" \"需Discord\""
+  echo "  catalog-add.sh \"Midjourney\" \"通用\" \"圖像\" \"pending\" \"AI圖像生成\" \"\$10/月\" \"需Discord\""
+  echo "  catalog-add.sh \"n8n Skill\" \"OpenClaw\" \"自動化\" \"pending\" \"工作流節點\" \"免費\" \"\""
 }
 
-if [[ $# -lt 4 ]]; then
+if [[ $# -lt 5 ]]; then
   show_usage
   exit 1
 fi
 
 TOOL_NAME="$1"
-CATEGORY_KEY="$2"
-STATUS_KEY="$3"
-FEATURE="$4"
-COST="${5:-}"
-NOTE="${6:-}"
+AGENT_KEY="$2"
+SECTION_KEY="$3"
+STATUS_KEY="$4"
+FEATURE="$5"
+COST="${6:-}"
+NOTE="${7:-}"
 
 case "$STATUS_KEY" in
   installed) STATUS="✅ 已安裝" ;;
@@ -41,35 +42,38 @@ case "$STATUS_KEY" in
   *)         STATUS="$STATUS_KEY" ;;
 esac
 
-# 找到目標分類的最後一個表格行位置
-SECTION_LINE=$(grep -n "## .*${CATEGORY_KEY}" "$CATALOG" | head -1 | cut -d: -f1)
-
-if [[ -z "$SECTION_LINE" ]]; then
-  echo "❌ 找不到分類：$CATEGORY_KEY"
-  echo "可用分類："
-  grep "^## " "$CATALOG"
+# 找到 Agent 區塊
+AGENT_LINE=$(grep -in "^## .*${AGENT_KEY}" "$CATALOG" | head -1 | cut -d: -f1)
+if [[ -z "$AGENT_LINE" ]]; then
+  echo "❌ 找不到 Agent：$AGENT_KEY"
+  grep "^## " "$CATALOG" | grep -v "狀態"
   exit 1
 fi
 
-# 找到此分類後的第一個 --- 分隔線（即本分類結束位置）
-END_LINE=$(awk "NR>$SECTION_LINE && /^---/{print NR; exit}" "$CATALOG")
-if [[ -z "$END_LINE" ]]; then
-  END_LINE=$(wc -l < "$CATALOG")
+# 找到 Agent 下的子分類
+SECTION_LINE=$(awk "NR>$AGENT_LINE && /^### .*${SECTION_KEY}/{print NR; exit}" "$CATALOG")
+if [[ -z "$SECTION_LINE" ]]; then
+  echo "❌ 找不到子分類：$SECTION_KEY（在 Agent: $AGENT_KEY 下）"
+  awk "NR>$AGENT_LINE && /^### /{print}" "$CATALOG"
+  exit 1
 fi
 
-# 找到此分類最後一個表格資料行
-LAST_TABLE_LINE=$(awk "NR>$SECTION_LINE && NR<$END_LINE && /^\|[^-]/{last=NR} END{print last+0}" "$CATALOG")
+# 找到下一個 ## 或 ### 作為此子分類的結束
+NEXT_SECTION=$(awk "NR>$SECTION_LINE && /^(##|---$)/{print NR; exit}" "$CATALOG")
+[[ -z "$NEXT_SECTION" ]] && NEXT_SECTION=$(wc -l < "$CATALOG")
 
-if [[ "$LAST_TABLE_LINE" -eq 0 ]]; then
+# 找到此子分類最後一個表格資料行
+LAST_TABLE=$(awk "NR>$SECTION_LINE && NR<$NEXT_SECTION && /^\|[^-]/{last=NR} END{print last+0}" "$CATALOG")
+
+if [[ "$LAST_TABLE" -eq 0 ]]; then
   echo "❌ 找不到表格位置"
   exit 1
 fi
 
-# 決定欄位數量（看標題行有幾欄）
+# 偵測欄位數
 HEADER_LINE=$(awk "NR>$SECTION_LINE && /^\| 工具/{print NR; exit}" "$CATALOG")
 COL_COUNT=$(awk "NR==$HEADER_LINE{n=gsub(/\|/,\"|\"); print n-1}" "$CATALOG")
 
-# 組合新行
 if [[ "$COL_COUNT" -ge 6 ]]; then
   NEW_ROW="| **${TOOL_NAME}** | ${STATUS} | ${FEATURE} | ${COST} | ❓ | ${NOTE} |"
 elif [[ "$COL_COUNT" -ge 5 ]]; then
@@ -78,15 +82,11 @@ else
   NEW_ROW="| **${TOOL_NAME}** | ${STATUS} | ${FEATURE} | ${NOTE} |"
 fi
 
-# 插入新行
-sed -i '' "${LAST_TABLE_LINE}a\\
+sed -i '' "${LAST_TABLE}a\\
 ${NEW_ROW}" "$CATALOG"
 
-echo "✅ 已新增：$TOOL_NAME → $(grep "## .*${CATEGORY_KEY}" "$CATALOG" | head -1 | sed 's/## //')"
+AGENT_TITLE=$(awk "NR==$AGENT_LINE{print}" "$CATALOG" | sed 's/## //')
+SECTION_TITLE=$(awk "NR==$SECTION_LINE{print}" "$CATALOG" | sed 's/### //')
+echo "✅ 已新增：$TOOL_NAME → $AGENT_TITLE / $SECTION_TITLE"
 
-# 重新生成 HTML
-if python3 "$GENERATE" 2>/dev/null; then
-  echo "✅ HTML 已更新：~/Desktop/AI工具目錄.html"
-else
-  echo "⚠️  HTML 更新失敗，請手動執行 generate.py"
-fi
+python3 "$GENERATE" 2>/dev/null && echo "✅ HTML 已更新" || echo "⚠️  HTML 更新失敗"
