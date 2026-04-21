@@ -1,0 +1,25 @@
+{
+  "name": "ai-catalog",
+  "version": "1.0.0",
+  "description": "Personal AI tools catalog with desktop HTML viewer. Tracks tools by status (installed/pending/review/blocked) with search and filter.",
+  "author": "labesclaw-cmd",
+  "license": "MIT",
+  "platform": ["mac"],
+  "requires": ["python3"],
+  "commands": {
+    "generate": "python3 bin/generate.py",
+    "catalog-add": "bash bin/catalog-add.sh"
+  },
+  "files": {
+    "catalog": "~/skill-hub/ai-tools-catalog.md",
+    "output": "~/Desktop/AI工具目錄.html",
+    "launchd": "com.james.ai-catalog-watch.plist"
+  },
+  "features": [
+    "Dark-themed HTML dashboard",
+    "Search by name or feature",
+    "Filter by status",
+    "Auto-regenerate when catalog.md changes (launchd WatchPaths)",
+    "CLI tool to add new entries without editing markdown"
+  ]
+}
