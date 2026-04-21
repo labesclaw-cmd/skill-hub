@@ -1,34 +1,168 @@
 #!/bin/bash
-# 每日任務報告 — 生成 MD 並發信給 James
+# daily_report.sh — 每日任務報告：18:30 自動生成 + 儲存桌面 + 發信
 
 DATE=$(date +%Y-%m-%d)
-REPORT="/tmp/今日報告-${DATE}.md"
+TIME=$(date '+%Y-%m-%d %H:%M:%S')
+REPORT_PATH="$HOME/Desktop/今日報告-${DATE}.md"
+SEND_PATH="/tmp/今日報告-${DATE}.md"
 LOG="$HOME/.claude/daily_report.log"
+TODAY=$(date +%Y-%m-%d)
+LAST_RUN_FLAG="$HOME/.claude/daily_report_last_run"
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] 開始生成今日報告..." >> "$LOG"
+echo "[$TIME] 開始生成今日報告..." >> "$LOG"
 
-# 讀取今日工作日誌
-LOG_FILE="$HOME/.claude/daily_work_log.md"
-if [ -f "$LOG_FILE" ]; then
-    REPORT_BODY=$(cat "$LOG_FILE")
-else
-    REPORT_BODY="（今日尚無工作日誌，請確認 Claude 有在維護 ~/.claude/daily_work_log.md）"
+# ── 1. 讀取 TASKS.md ──────────────────────────────────────────────
+TASKS_FILE="$HOME/.openclaw/workspace/TASKS.md"
+TASKS_DONE=""
+TASKS_PENDING=""
+
+if [ -f "$TASKS_FILE" ]; then
+    TASKS_DONE=$(grep -E "^\s*-\s*\[x\]" "$TASKS_FILE" | sed 's/^\s*-\s*\[x\]\s*/- ✅ /' | head -20)
+    TASKS_PENDING=$(grep -E "^\s*-\s*\[\s*\]" "$TASKS_FILE" | sed 's/^\s*-\s*\[\s*\]\s*/- ⏳ /' | head -20)
 fi
 
-# 寫入 MD 報告
-cat > "$REPORT" << MDEOF
-${REPORT_BODY}
+# 補充今日工作日誌
+WORK_LOG="$HOME/.claude/daily_work_log.md"
+if [ -f "$WORK_LOG" ]; then
+    EXTRA_DONE=$(grep -E "^### [0-9]\." "$WORK_LOG" | sed 's/^### /- ✅ /' | head -10)
+    [ -n "$EXTRA_DONE" ] && TASKS_DONE="${TASKS_DONE}
+${EXTRA_DONE}"
+fi
+
+[ -z "$TASKS_DONE" ]   && TASKS_DONE="（今日無已完成任務記錄）"
+[ -z "$TASKS_PENDING" ] && TASKS_PENDING="（無待辦任務，或 TASKS.md 未找到）"
+
+# ── 2. 掃描今日新增/修改的 skill 與腳本 ──────────────────────────
+SKILLS_DIR="$HOME/.openclaw/workspace/skills"
+CLAUDE_DIR="$HOME/.claude"
+SKILL_HUB="$HOME/skill-hub"
+
+# 用 last_run flag 做基準；第一次執行改用當天凌晨
+if [ ! -f "$LAST_RUN_FLAG" ]; then
+    touch -t "$(date +%Y%m%d)0000" "$LAST_RUN_FLAG"
+fi
+
+NEW_FILES=$(find "$SKILLS_DIR" "$CLAUDE_DIR" "$SKILL_HUB" \
+    -type f \( -name "*.sh" -o -name "*.py" -o -name "*.js" -o -name "*.json" -o -name "*.md" \) \
+    -newer "$LAST_RUN_FLAG" 2>/dev/null \
+    | grep -v "\.git/" | grep -v "__pycache__" \
+    | grep -v "gmail_inbox" | grep -v "daily_report\.log" \
+    | sed "s|$HOME/||" | sort)
+
+touch "$LAST_RUN_FLAG"
+
+if [ -z "$NEW_FILES" ]; then
+    NEW_SKILLS_LIST="（今日無新增或修改的 skill / 腳本）"
+    SKILL_DETAILS=""
+else
+    NEW_SKILLS_LIST=$(echo "$NEW_FILES" | sed 's/^/- 📄 /')
+
+    # 針對每個 .sh / .py 抽取說明行
+    SKILL_DETAILS=""
+    while IFS= read -r f; do
+        FULL="$HOME/$f"
+        [ ! -f "$FULL" ] && continue
+        case "$f" in *.sh|*.py|*.js)
+            DESC=$(grep "^#" "$FULL" | grep -v "^#!/" | head -3 \
+                   | sed 's/^#\s*//' | tr '\n' '；' | sed 's/；$//')
+            if [ -n "$DESC" ]; then
+                SKILL_DETAILS="${SKILL_DETAILS}
+#### \`~/$f\`
+> $DESC
+"
+            fi
+        esac
+    done <<< "$NEW_FILES"
+    [ -z "$SKILL_DETAILS" ] && SKILL_DETAILS="（自動說明擷取無結果，請手動查閱）"
+fi
+
+# ── 3. 今日收到的信件 ─────────────────────────────────────────────
+INBOX="$HOME/.claude/gmail_inbox_new.json"
+MAIL_LIST="（今日無新信件，或 inbox 檔案不存在）"
+
+if [ -f "$INBOX" ]; then
+    MAIL_LIST=$(python3 - "$INBOX" "$TODAY" << 'PYEOF'
+import json, sys
+
+inbox_path = sys.argv[1]
+today      = sys.argv[2]
+
+with open(inbox_path) as f:
+    mails = json.load(f)
+
+lines = []
+for m in mails:
+    date_str = m.get('date', '')
+    subject  = m.get('subject', '（無主旨）')
+    sender   = m.get('from', '?')
+    if today in date_str or not date_str:
+        lines.append(f'- 📧 **{subject}**  ·  寄件人：{sender}')
+
+print('\n'.join(lines) if lines else '（今日無新信件）')
+PYEOF
+    )
+fi
+
+# ── 4. 明日建議 ───────────────────────────────────────────────────
+TOMORROW_PLAN=$(echo "$TASKS_PENDING" | grep "^- ⏳" | head -3 \
+    | sed 's/^- ⏳ /- 🔜 /')
+[ -z "$TOMORROW_PLAN" ] && TOMORROW_PLAN="- 🔜 依最新 TASKS.md 規劃，無自動建議"
+
+# ── 5. 組合報告 ───────────────────────────────────────────────────
+cat > "$REPORT_PATH" << MDEOF
+# 今日任務報告 — ${DATE}
+
+> 自動生成時間：${TIME}
 
 ---
-*本報告由 Claude 自動生成於 $(date '+%Y-%m-%d %H:%M:%S')*
+
+## ✅ 已完成的任務
+
+${TASKS_DONE}
+
+---
+
+## ⏳ 未完成的任務
+
+${TASKS_PENDING}
+
+---
+
+## 🆕 新增的技能 / 工具
+
+${NEW_SKILLS_LIST}
+
+### 操作說明
+
+${SKILL_DETAILS}
+
+---
+
+## 📬 今日收到的信件
+
+${MAIL_LIST}
+
+---
+
+## 📝 明日建議
+
+${TOMORROW_PLAN}
+
+---
+*本報告由 Claude 自動生成 · 資料來源：TASKS.md、gmail\_inbox\_new.json、skill 目錄掃描*
 MDEOF
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] MD 報告已寫入：$REPORT" >> "$LOG"
+echo "[$TIME] 報告已儲存：$REPORT_PATH" >> "$LOG"
 
-# 發信給 James（含附件）
-python3 << PYEOF
-import json, urllib.request, urllib.parse, base64
+# ── 6. 發信（附件）───────────────────────────────────────────────
+cp "$REPORT_PATH" "$SEND_PATH"
+
+python3 - "$SEND_PATH" "$DATE" << 'PYEOF'
+import json, urllib.request, urllib.parse, base64, sys
 import email.mime.multipart, email.mime.text, email.mime.base, email.encoders
+
+send_path = sys.argv[1]
+date_str  = sys.argv[2]
 
 def get_token():
     with open('/Users/jamesmacmini/.claude/gmail_token.json') as f:
@@ -41,42 +175,41 @@ def get_token():
         'client_secret': d['client_secret'],
         'grant_type': 'refresh_token'
     }).encode()
-    resp = json.loads(urllib.request.urlopen(urllib.request.Request('https://oauth2.googleapis.com/token', data=data)).read())
+    resp = json.loads(urllib.request.urlopen(
+        urllib.request.Request('https://oauth2.googleapis.com/token', data=data)
+    ).read())
     return resp['access_token']
 
-report_path = '$REPORT'
-date_str = '$DATE'
-
-with open(report_path, 'rb') as f:
+with open(send_path, 'rb') as f:
     file_data = f.read()
 
 msg = email.mime.multipart.MIMEMultipart()
-msg['To'] = 'chenyuchi09@gmail.com'
-msg['Subject'] = f'Claude 每日工作報告 — {date_str}'
-msg['From'] = 'me'
+msg['To']      = 'chenyuchi09@gmail.com'
+msg['Subject'] = f'Claude 每日任務報告 — {date_str}'
+msg['From']    = 'me'
 
-# 信件本文
-msg.attach(email.mime.text.MIMEText('今日工作報告請見附件。', 'plain', 'utf-8'))
+body = f'今日任務報告請見附件。\n報告亦儲存於桌面：今日報告-{date_str}.md'
+msg.attach(email.mime.text.MIMEText(body, 'plain', 'utf-8'))
 
-# 附加 .md 檔案
 part = email.mime.base.MIMEBase('application', 'octet-stream')
 part.set_payload(file_data)
 email.encoders.encode_base64(part)
-from email.header import Header
-filename = f'Claude每日報告-{date_str}.md'
-part.add_header('Content-Disposition', 'attachment', filename=('utf-8', '', filename))
+part.add_header('Content-Disposition', 'attachment',
+                filename=('utf-8', '', f'今日報告-{date_str}.md'))
 msg.attach(part)
 
 raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
-payload = json.dumps({'raw': raw}).encode()
 req = urllib.request.Request(
     'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
-    data=payload,
-    headers={'Authorization': 'Bearer ' + get_token(), 'Content-Type': 'application/json'}
+    data=json.dumps({'raw': raw}).encode(),
+    headers={
+        'Authorization': 'Bearer ' + get_token(),
+        'Content-Type': 'application/json'
+    }
 )
 resp = json.loads(urllib.request.urlopen(req).read())
-print('寄出成功！ID:', resp.get('id'))
+print('郵件寄出成功，ID:', resp.get('id', '?'))
 PYEOF
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] 報告已發信給 chenyuchi09@gmail.com" >> "$LOG"
-rm -f "$REPORT"
+echo "[$TIME] 報告已發信至 chenyuchi09@gmail.com" >> "$LOG"
+rm -f "$SEND_PATH"
