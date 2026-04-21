@@ -81,17 +81,45 @@ MESSAGE="$2"
 case "$MODE" in
     alert)
         # 有任務卡住，呼叫方式: notify.sh alert "任務說明"
+        ALERT_FLAG="$HOME/.claude/notify_alert_$(echo "$MESSAGE" | md5).flag"
+
         if [ "$HOUR" -ge 8 ] && [ "$HOUR" -lt 22 ]; then
-            notify_send "⚠️ Claude 需要你確認" "以下任務需要你的回應：
+            if [ ! -f "$ALERT_FLAG" ]; then
+                # 第一次通知
+                notify_send "⚠️ Claude 需要你確認" "以下任務需要你的回應：
 
 $MESSAGE
 
-請到 Claude Code 繼續操作。"
-            echo "[$(date '+%Y-%m-%d %H:%M:%S')] 即時通知已發送：$MESSAGE" >> "$LOG"
+請到 Claude Code 繼續操作。
+（若 10 分鐘內未回應，將再提醒一次）"
+                echo "$(date +%s)" > "$ALERT_FLAG"
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] 第一次通知已發送：$MESSAGE" >> "$LOG"
+            else
+                FIRST_TIME=$(cat "$ALERT_FLAG")
+                NOW=$(date +%s)
+                DIFF=$((NOW - FIRST_TIME))
+                if [ "$DIFF" -ge 600 ] && [ "$DIFF" -lt 660 ]; then
+                    # 10 分鐘後發第二次（僅此一次）
+                    notify_send "🔔 Claude 再次提醒：需要你確認" "此任務仍在等待你的回應：
+
+$MESSAGE
+
+請到 Claude Code 繼續操作。（這是最後一次提醒）"
+                    echo "sent_twice" >> "$ALERT_FLAG"
+                    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 第二次提醒已發送：$MESSAGE" >> "$LOG"
+                fi
+            fi
         else
             queue_add "$MESSAGE"
             echo "[$(date '+%Y-%m-%d %H:%M:%S')] 靜默時段，已加入佇列：$MESSAGE" >> "$LOG"
         fi
+        ;;
+
+    clear)
+        # 任務已確認，清除 flag: notify.sh clear "任務說明"
+        ALERT_FLAG="$HOME/.claude/notify_alert_$(echo "$MESSAGE" | md5).flag"
+        rm -f "$ALERT_FLAG"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] 已清除通知 flag：$MESSAGE" >> "$LOG"
         ;;
 
     morning)
