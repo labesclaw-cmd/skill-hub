@@ -1,21 +1,38 @@
 #!/bin/bash
 # claude-notify — Claude 阻礙通知系統
 # 08:00-22:00 即時通知，22:00-08:00 靜默累積，08:00 發早報
+#
+# 設定：把收件人 email 存到 ~/.claude/notify_config.sh
+#   echo 'NOTIFY_EMAIL="your@email.com"' > ~/.claude/notify_config.sh
 
 QUEUE="$HOME/.claude/notify_queue.json"
 LOG="$HOME/.claude/notify.log"
 HOUR=$(date +%H)
 
+# 載入個人設定
+[ -f "$HOME/.claude/notify_config.sh" ] && source "$HOME/.claude/notify_config.sh"
+NOTIFY_EMAIL="${NOTIFY_EMAIL:-}"
+
+if [ -z "$NOTIFY_EMAIL" ]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: NOTIFY_EMAIL 未設定，請建立 ~/.claude/notify_config.sh" >> "$LOG"
+    exit 1
+fi
+
+TOKEN_JSON="$HOME/.claude/gmail_token.json"
+CLIENT_JSON="$HOME/.claude/gmail_client_secret.json"
+
 notify_send() {
     local subject="$1"
     local body="$2"
-    python3 << PYEOF
-import json, urllib.request, urllib.parse, base64, email.mime.text
+    python3 - "$TOKEN_JSON" "$CLIENT_JSON" "$NOTIFY_EMAIL" "$subject" "$body" << 'PYEOF'
+import json, urllib.request, urllib.parse, base64, email.mime.text, sys
+
+token_path, client_path, to_addr, subject, body = sys.argv[1:]
 
 def get_token():
-    with open('/Users/jamesmacmini/.claude/gmail_token.json') as f:
+    with open(token_path) as f:
         token = json.load(f)
-    with open('/Users/jamesmacmini/.claude/gmail_client_secret.json') as f:
+    with open(client_path) as f:
         d = json.load(f)['installed']
     data = urllib.parse.urlencode({
         'refresh_token': token['refresh_token'],
@@ -23,18 +40,19 @@ def get_token():
         'client_secret': d['client_secret'],
         'grant_type': 'refresh_token'
     }).encode()
-    resp = json.loads(urllib.request.urlopen(urllib.request.Request('https://oauth2.googleapis.com/token', data=data)).read())
+    resp = json.loads(urllib.request.urlopen(
+        urllib.request.Request('https://oauth2.googleapis.com/token', data=data)
+    ).read())
     return resp['access_token']
 
-msg = email.mime.text.MIMEText("""$body""", 'plain', 'utf-8')
-msg['To'] = 'chenyuchi09@gmail.com'
-msg['Subject'] = """$subject"""
-msg['From'] = 'me'
+msg = email.mime.text.MIMEText(body, 'plain', 'utf-8')
+msg['To']      = to_addr
+msg['Subject'] = subject
+msg['From']    = 'me'
 raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
-payload = json.dumps({'raw': raw}).encode()
 req = urllib.request.Request(
     'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
-    data=payload,
+    data=json.dumps({'raw': raw}).encode(),
     headers={'Authorization': 'Bearer ' + get_token(), 'Content-Type': 'application/json'}
 )
 json.loads(urllib.request.urlopen(req).read())
@@ -80,12 +98,10 @@ MESSAGE="$2"
 
 case "$MODE" in
     alert)
-        # 有任務卡住，呼叫方式: notify.sh alert "任務說明"
         ALERT_FLAG="$HOME/.claude/notify_alert_$(echo "$MESSAGE" | md5).flag"
 
         if [ "$HOUR" -ge 8 ] && [ "$HOUR" -lt 22 ]; then
             if [ ! -f "$ALERT_FLAG" ]; then
-                # 第一次通知
                 notify_send "⚠️ Claude 需要你確認" "以下任務需要你的回應：
 
 $MESSAGE
@@ -99,7 +115,6 @@ $MESSAGE
                 NOW=$(date +%s)
                 DIFF=$((NOW - FIRST_TIME))
                 if [ "$DIFF" -ge 600 ] && [ "$DIFF" -lt 660 ]; then
-                    # 10 分鐘後發第二次（僅此一次）
                     notify_send "🔔 Claude 再次提醒：需要你確認" "此任務仍在等待你的回應：
 
 $MESSAGE
@@ -116,14 +131,12 @@ $MESSAGE
         ;;
 
     clear)
-        # 任務已確認，清除 flag: notify.sh clear "任務說明"
         ALERT_FLAG="$HOME/.claude/notify_alert_$(echo "$MESSAGE" | md5).flag"
         rm -f "$ALERT_FLAG"
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] 已清除通知 flag：$MESSAGE" >> "$LOG"
         ;;
 
     morning)
-        # 早上 08:00 排程呼叫: notify.sh morning
         QUEUED=$(queue_flush)
         if [ -n "$QUEUED" ]; then
             notify_send "☀️ Claude 昨夜卡住的任務（早報）" "以下是昨晚 22:00 後累積的待確認任務：

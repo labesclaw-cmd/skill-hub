@@ -32,7 +32,7 @@ content = open('$ACTIVE_DIR/$FILE').read()
 
 # 用 OpenRouter 免費模型壓縮
 try:
-    with open('/Users/jamesmacmini/.openclaw/openclaw.json') as f:
+    with open(os.path.expanduser('~/.openclaw/openclaw.json')) as f:
         config = json.load(f)
     api_key = config['models']['providers']['openrouter']['apiKey']
 except:

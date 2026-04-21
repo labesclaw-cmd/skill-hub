@@ -165,9 +165,9 @@ send_path = sys.argv[1]
 date_str  = sys.argv[2]
 
 def get_token():
-    with open('/Users/jamesmacmini/.claude/gmail_token.json') as f:
+    with open('$HOME/.claude/gmail_token.json') as f:
         token = json.load(f)
-    with open('/Users/jamesmacmini/.claude/gmail_client_secret.json') as f:
+    with open('$HOME/.claude/gmail_client_secret.json') as f:
         d = json.load(f)['installed']
     data = urllib.parse.urlencode({
         'refresh_token': token['refresh_token'],
@@ -184,7 +184,15 @@ with open(send_path, 'rb') as f:
     file_data = f.read()
 
 msg = email.mime.multipart.MIMEMultipart()
-msg['To']      = 'chenyuchi09@gmail.com'
+import os
+notify_email = os.environ.get('NOTIFY_EMAIL', '')
+if not notify_email:
+    cfg = os.path.expanduser('~/.claude/notify_config.sh')
+    if os.path.exists(cfg):
+        for line in open(cfg):
+            if 'NOTIFY_EMAIL' in line:
+                notify_email = line.split('=',1)[-1].strip().strip('"').strip("'")
+msg['To']      = notify_email
 msg['Subject'] = f'Claude 每日任務報告 — {date_str}'
 msg['From']    = 'me'
 
@@ -211,5 +219,5 @@ resp = json.loads(urllib.request.urlopen(req).read())
 print('郵件寄出成功，ID:', resp.get('id', '?'))
 PYEOF
 
-echo "[$TIME] 報告已發信至 chenyuchi09@gmail.com" >> "$LOG"
+echo "[$TIME] 報告已發信" >> "$LOG"
 rm -f "$SEND_PATH"
