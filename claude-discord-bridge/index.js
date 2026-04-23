@@ -130,7 +130,8 @@ client.on('messageCreate', async (msg) => {
     // 切換回電腦 — 把 buffer 摘要寫入 handoff.md
     if (content.includes('切換回電腦') || content.includes('切換到電腦') ||
         content.includes('切換到dc') || content.includes('切換到DC') ||
-        content.includes('切換到discord') || content.includes('切換到Discord')) {
+        content.includes('切換到discord') || content.includes('切換到Discord') ||
+        content.includes('我在咖啡廳')) {
         const summary = session.buffer.length > 0
             ? `## 剛才討論的內容\n${bufferSummary(session.buffer)}`
             : '## 剛才討論的內容\n（無紀錄）';
