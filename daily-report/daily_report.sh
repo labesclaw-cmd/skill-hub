@@ -1,15 +1,21 @@
 #!/bin/bash
-# daily_report.sh — 每日任務報告：18:30 自動生成 + 儲存桌面 + 發信
+# daily_report.sh — 每日任務報告：18:30 自動生成 + 純 mail 發送（不存桌面）
 
 DATE=$(date +%Y-%m-%d)
 TIME=$(date '+%Y-%m-%d %H:%M:%S')
-REPORT_PATH="$HOME/Desktop/今日報告-${DATE}.md"
-SEND_PATH="/tmp/今日報告-${DATE}.md"
+SEND_PATH="/tmp/daily_report_${DATE}.md"
 LOG="$HOME/.claude/daily_report.log"
 TODAY=$(date +%Y-%m-%d)
 LAST_RUN_FLAG="$HOME/.claude/daily_report_last_run"
 
 echo "[$TIME] 開始生成今日報告..." >> "$LOG"
+
+# 載入 email 設定
+[ -f "$HOME/.claude/notify_config.sh" ] && source "$HOME/.claude/notify_config.sh"
+if [ -z "$NOTIFY_EMAIL" ]; then
+    echo "[$TIME] ERROR: NOTIFY_EMAIL 未設定，請確認 ~/.claude/notify_config.sh" >> "$LOG"
+    exit 1
+fi
 
 # ── 1. 讀取 TASKS.md ──────────────────────────────────────────────
 TASKS_FILE="$HOME/.openclaw/workspace/TASKS.md"
@@ -29,7 +35,7 @@ if [ -f "$WORK_LOG" ]; then
 ${EXTRA_DONE}"
 fi
 
-[ -z "$TASKS_DONE" ]   && TASKS_DONE="（今日無已完成任務記錄）"
+[ -z "$TASKS_DONE" ]    && TASKS_DONE="（今日無已完成任務記錄）"
 [ -z "$TASKS_PENDING" ] && TASKS_PENDING="（無待辦任務，或 TASKS.md 未找到）"
 
 # ── 2. 掃描今日新增/修改的 skill 與腳本 ──────────────────────────
@@ -37,7 +43,6 @@ SKILLS_DIR="$HOME/.openclaw/workspace/skills"
 CLAUDE_DIR="$HOME/.claude"
 SKILL_HUB="$HOME/skill-hub"
 
-# 用 last_run flag 做基準；第一次執行改用當天凌晨
 if [ ! -f "$LAST_RUN_FLAG" ]; then
     touch -t "$(date +%Y%m%d)0000" "$LAST_RUN_FLAG"
 fi
@@ -56,8 +61,6 @@ if [ -z "$NEW_FILES" ]; then
     SKILL_DETAILS=""
 else
     NEW_SKILLS_LIST=$(echo "$NEW_FILES" | sed 's/^/- 📄 /')
-
-    # 針對每個 .sh / .py 抽取說明行
     SKILL_DETAILS=""
     while IFS= read -r f; do
         FULL="$HOME/$f"
@@ -96,7 +99,7 @@ for m in mails:
     subject  = m.get('subject', '（無主旨）')
     sender   = m.get('from', '?')
     if today in date_str or not date_str:
-        lines.append(f'- 📧 **{subject}**  ·  寄件人：{sender}')
+        lines.append(f'- 📧 {subject}  （{sender}）')
 
 print('\n'.join(lines) if lines else '（今日無新信件）')
 PYEOF
@@ -108,8 +111,8 @@ TOMORROW_PLAN=$(echo "$TASKS_PENDING" | grep "^- ⏳" | head -3 \
     | sed 's/^- ⏳ /- 🔜 /')
 [ -z "$TOMORROW_PLAN" ] && TOMORROW_PLAN="- 🔜 依最新 TASKS.md 規劃，無自動建議"
 
-# ── 5. 組合報告 ───────────────────────────────────────────────────
-cat > "$REPORT_PATH" << MDEOF
+# ── 5. 組合報告到暫存檔（發完即刪）──────────────────────────────
+cat > "$SEND_PATH" << MDEOF
 # 今日任務報告 — ${DATE}
 
 > 自動生成時間：${TIME}
@@ -152,22 +155,32 @@ ${TOMORROW_PLAN}
 *本報告由 Claude 自動生成 · 資料來源：TASKS.md、gmail\_inbox\_new.json、skill 目錄掃描*
 MDEOF
 
-echo "[$TIME] 報告已儲存：$REPORT_PATH" >> "$LOG"
+# ── 6. 統計摘要（供 mail body 用）────────────────────────────────
+DONE_COUNT=$(echo "$TASKS_DONE" | grep -c "^- ✅" 2>/dev/null || echo 0)
+PENDING_COUNT=$(echo "$TASKS_PENDING" | grep -c "^- ⏳" 2>/dev/null || echo 0)
+NEW_COUNT=$([ -n "$NEW_FILES" ] && echo "$NEW_FILES" | wc -l | tr -d ' ' || echo 0)
+MAIL_COUNT=$(echo "$MAIL_LIST" | grep -c "^- 📧" 2>/dev/null || echo 0)
 
-# ── 6. 發信（附件）───────────────────────────────────────────────
-cp "$REPORT_PATH" "$SEND_PATH"
-
-python3 - "$SEND_PATH" "$DATE" << 'PYEOF'
-import json, urllib.request, urllib.parse, base64, sys
+# ── 7. 發信（簡短 body + .md 附件）──────────────────────────────
+python3 - "$SEND_PATH" "$DATE" "$NOTIFY_EMAIL" \
+    "$DONE_COUNT" "$PENDING_COUNT" "$NEW_COUNT" "$MAIL_COUNT" << 'PYEOF'
+import json, urllib.request, urllib.parse, base64, sys, os
 import email.mime.multipart, email.mime.text, email.mime.base, email.encoders
 
-send_path = sys.argv[1]
-date_str  = sys.argv[2]
+send_path     = sys.argv[1]
+date_str      = sys.argv[2]
+to_addr       = sys.argv[3]
+done_count    = sys.argv[4]
+pending_count = sys.argv[5]
+new_count     = sys.argv[6]
+mail_count    = sys.argv[7]
+
+home = os.path.expanduser('~')
 
 def get_token():
-    with open('$HOME/.claude/gmail_token.json') as f:
+    with open(f'{home}/.claude/gmail_token.json') as f:
         token = json.load(f)
-    with open('$HOME/.claude/gmail_client_secret.json') as f:
+    with open(f'{home}/.claude/gmail_client_secret.json') as f:
         d = json.load(f)['installed']
     data = urllib.parse.urlencode({
         'refresh_token': token['refresh_token'],
@@ -183,20 +196,21 @@ def get_token():
 with open(send_path, 'rb') as f:
     file_data = f.read()
 
-msg = email.mime.multipart.MIMEMultipart()
-import os
-notify_email = os.environ.get('NOTIFY_EMAIL', '')
-if not notify_email:
-    cfg = os.path.expanduser('~/.claude/notify_config.sh')
-    if os.path.exists(cfg):
-        for line in open(cfg):
-            if 'NOTIFY_EMAIL' in line:
-                notify_email = line.split('=',1)[-1].strip().strip('"').strip("'")
-msg['To']      = notify_email
+body = f"""今日報告摘要 — {date_str}
+
+✅ 已完成：{done_count} 項
+⏳ 待辦中：{pending_count} 項
+🆕 新增技能/腳本：{new_count} 個
+📬 今日收信：{mail_count} 封
+
+詳細內容請下載附件 今日報告-{date_str}.md 查閱。
+"""
+
+msg = email.mime.multipart.MIMEMultipart('mixed')
+msg['To']      = to_addr
 msg['Subject'] = f'Claude 每日任務報告 — {date_str}'
 msg['From']    = 'me'
 
-body = f'今日任務報告請見附件。\n報告亦儲存於桌面：今日報告-{date_str}.md'
 msg.attach(email.mime.text.MIMEText(body, 'plain', 'utf-8'))
 
 part = email.mime.base.MIMEBase('application', 'octet-stream')
@@ -216,8 +230,8 @@ req = urllib.request.Request(
     }
 )
 resp = json.loads(urllib.request.urlopen(req).read())
-print('郵件寄出成功，ID:', resp.get('id', '?'))
+print('sent:', resp.get('id', '?'))
 PYEOF
 
-echo "[$TIME] 報告已發信" >> "$LOG"
+echo "[$TIME] 報告已發信至 $NOTIFY_EMAIL" >> "$LOG"
 rm -f "$SEND_PATH"
