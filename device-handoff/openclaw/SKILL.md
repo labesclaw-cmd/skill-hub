@@ -1,5 +1,15 @@
 # Skill: device-handoff
 
+## 溝通管道定位
+
+| 場景 | 管道 |
+|------|------|
+| 在電腦前 | 終端機（Claude Code） |
+| 外出 | Email（非同步，不疊文） |
+| 臨時即時討論 | Discord |
+
+
+
 ## 用途
 在終端機（Claude Code）和 Discord（手機/DC）之間無縫切換，並透過結構化交接摘要保留對話脈絡。
 
