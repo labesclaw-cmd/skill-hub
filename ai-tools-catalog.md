@@ -31,8 +31,8 @@
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
 |------|------|------|------|------|
 | **Ollama** | ✅ 已安裝 | 本地 LLM 推理，支援 gemma4:26b / qwen3:8b | 免費 | localhost:11434，OpenAI-compatible |
-| **Rapid-MLX** | 🔍 待評估 | Apple Silicon 本地 LLM 推理，基於 MLX 框架，比 Ollama 快 2-4x，OpenAI-compatible API | 免費/開源 | Apache 2.0，2026/3 發布。Qwen3.5-4B 4bit 在 M4 16GB 可達 ~150 tok/s，對 Qwen3.5 RNN 架構有特殊加速。現階段保留觀察，穩定後再評估安裝。 |
-| **Rapid-MLX** | ✅ 已安裝 | Apple Silicon 本地 LLM 推理，基於 MLX 框架，OpenAI-compatible API，比 Ollama 快 2-4x | 免費/開源 | v0.6.11，brew 安裝，qwen3.5-4b 已下載，port 11435 |
+| **Rapid-MLX** | ✅ 已安裝 | Apple Silicon 本地 LLM 推理，基於 MLX 框架，OpenAI-compatible API，比 Ollama 快 2-4x | 免費/開源 | v0.6.11，brew 安裝，qwen3.5-4b 已下載（168 tok/s），port 11435 |
+
 ### 🎬 影片生成
 
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
