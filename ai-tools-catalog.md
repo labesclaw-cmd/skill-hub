@@ -22,10 +22,10 @@
 | **ai-catalog** | ✅ 已安裝 | AI 工具目錄 HTML 查閱 | 免費 | ~/skill-hub/ai-catalog/ |
 | **hermes_task.sh** | ✅ 已安裝 | Claude Code 呼叫 Hermes 輕量任務腳本 | 免費 | ~/cowork/scripts/ |
 | **notebooklm-py** | ✅ 已安裝 | NotebookLM 非官方 Python API + Claude Code Skill，可程式化操作 notebook、生成 podcast/影片/測驗，支援批次下載等 Web UI 沒有的功能 | 免費/開源 | MIT，v0.3.4，~/.venv/notebooklm，skill 已安裝 |
-
-## 🌐 通用工具
-
-### 💻 本地推理
+| **Claude.ai 畫布設計** | ⏳ 待處理 | 生成 PNG/PDF 視覺設計，海報/UI草稿/縮圖 | 免費 | 需在 claude.ai Cowork 安裝 |
+| **Claude.ai Brightdata插件** | ⏳ 待處理 | 40+網站爬蟲（YouTube/Amazon/TikTok），機器人繞過 | freemium | 大量爬蟲需付費 |## 🌐 通用工具
+| **Claude.ai Postiz** | ⏳ 待處理 | 28+平台社群排程（YouTube/TikTok/Instagram等） | freemium | 需各平台 API Key |
+| **Claude.ai Searchfit SEO** | ⏳ 待處理 | 免費SEO工具組：審核、關鍵字、AI效果追蹤 | 免費 | 適合 YouTube SEO 使用 |### 💻 本地推理
 
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
 |------|------|------|------|------|
