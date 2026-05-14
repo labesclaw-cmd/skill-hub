@@ -14,7 +14,7 @@
 | **filesystem MCP** | ✅ 已安裝 | 本機檔案系統存取 | 免費 | |
 | **context7 MCP** | ✅ 已安裝 | 即時文件查詢 | 免費 | |
 | **chrome-devtools MCP** | ✅ 已安裝 | Chrome 瀏覽器控制 v0.21.0 | 免費 | |
-
+| **Claude.ai /mcp-builder** | ⏳ 待處理 | 建立 MCP Server 的 Skill，Python/Node 皆支援 | 免費 | 需在 claude.ai Cowork 安裝 |
 ### 🧠 Skill Hub
 
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
