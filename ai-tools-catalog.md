@@ -31,7 +31,7 @@
 |------|------|------|------|------|
 | **Ollama** | ✅ 已安裝 | 本地 LLM 推理，支援 gemma4:26b / qwen3:8b | 免費 | localhost:11434，OpenAI-compatible |
 | **Rapid-MLX** | ✅ 已安裝 | Apple Silicon 本地 LLM 推理，基於 MLX 框架，OpenAI-compatible API，比 Ollama 快 2-4x | 免費/開源 | v0.6.11，brew 安裝，qwen3.5-4b 已下載（168 tok/s），port 11435 |
-
+| **skilless.ai** | ✅ 已安裝 | 給 Claude Code 加上網頁搜尋、yt-dlp 字幕提取、RSS 解析能力 | 免費 | 一行安裝，已連結 ~/.claude/skills/ |
 ### 🎬 影片生成
 
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
