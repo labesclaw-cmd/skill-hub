@@ -45,7 +45,7 @@
 ### 📓 知識整理
 
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
-|------|------|------|------|------|
+| **markitdown** | ✅ 已安裝 | 微軟開源，把PDF/Office/影像/音訊/YouTube/網址等轉成Markdown供LLM讀取 | 免費開源MIT；選用Azure/LLM圖片描述功能才計費 | venv裝於~/cowork/tools/markitdown-venv，alias mid；YouTube抓現成字幕不跑whisper ||------|------|------|------|------|
 
 ---
 
