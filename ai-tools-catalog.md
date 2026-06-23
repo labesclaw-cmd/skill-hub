@@ -37,12 +37,12 @@
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
 | **CapCut 剪映 Pro** | 🔍 待評估 | 一站式 AI 影片:AI配音、數位人avatar、字幕、剪輯、去背、縮圖;中文原生字節跳動;Web版可免費試做 | NT290月 或 NT2490年;Web免費可試 | 風管YouTube主力候選;先免費試做驗證中文專有名詞發音 ||------|------|------|------|------|
 | **HeyGen** | 🔍 待評估 | 高擬真AI主播Avatar IV;175語言對嘴;有API可全自動化;約30分鐘月 | US29月 年繳US24 | 風管YouTube升級選項;有API我可串接自動產片 |
-### 🖼️ 圖像生成
+| **Kling 3.0** | 🔍 待評估 | 圖或文字生角色;Subject Binding 跨鏡角色一致性最強5分;單段最長15秒;無中文配音需配HeyGen | 免費66credits日;Standard US6.99月年繳 | AI短劇方案A核心影片生成;台灣信用卡可付 |### 🖼️ 圖像生成
 
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
-|------|------|------|------|------|
-
-### 📓 知識整理
+| **Domo AI** | 🔍 待評估 | 上傳角色圖轉動畫Character-to-Video;動漫風格最佳;無中文配音無腳本流;真人感較弱 | Basic US6.99月年繳500credits | James指定納入;動漫短劇適用真人較弱 ||------|------|------|------|------|
+| **Vidu** | 🔍 待評估 | 多參考圖最多7張角色一致;Reference-to-Video;每段5-8秒;有API | 免費800credits月離峰無限;Standard US10月 | AI短劇方案B角色一致補充;Stripe付款 |
+| **LTX Studio** | 🔍 待評估 | 最完整腳本到分鏡到影片流程;Elements角色場景庫跨鏡一致;個人無API | 免費800credits一次;Standard US28月年繳 | AI短劇方案B一站式腳本流 |### 📓 知識整理
 
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
 | **markitdown** | ✅ 已安裝 | 微軟開源，把PDF/Office/影像/音訊/YouTube/網址等轉成Markdown供LLM讀取 | 免費開源MIT；選用Azure/LLM圖片描述功能才計費 | venv裝於~/cowork/tools/markitdown-venv，alias mid；YouTube抓現成字幕不跑whisper ||------|------|------|------|------|
