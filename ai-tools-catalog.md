@@ -32,7 +32,7 @@
 | **Ollama** | ✅ 已安裝 | 本地 LLM 推理，支援 gemma4:26b / qwen3:8b | 免費 | localhost:11434，OpenAI-compatible |
 | **Rapid-MLX** | ✅ 已安裝 | Apple Silicon 本地 LLM 推理，基於 MLX 框架，OpenAI-compatible API，比 Ollama 快 2-4x | 免費/開源 | v0.6.11，brew 安裝，qwen3.5-4b 已下載（168 tok/s），port 11435 |
 | **skilless.ai** | ✅ 已安裝 | 給 Claude Code 加上網頁搜尋、yt-dlp 字幕提取、RSS 解析能力 | 免費 | 一行安裝，已連結 ~/.claude/skills/ |
-### 🎬 影片生成
+| **notebooklm-py** | ✅ 已安裝 | 程式化操作 NotebookLM（list/ask/source add），讓 Claude 直接讀 James 的 YouTube 分析筆記本 | 免費 | 非官方 API；2026-10-02 登入過期需重登；帳號待 James 確認（chenyuchi09 需明確授權） |### 🎬 影片生成
 
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
 | **CapCut 剪映 Pro** | 🔍 待評估 | 一站式 AI 影片:AI配音、數位人avatar、字幕、剪輯、去背、縮圖;中文原生字節跳動;Web版可免費試做 | NT290月 或 NT2490年;Web免費可試 | 風管YouTube主力候選;先免費試做驗證中文專有名詞發音 ||------|------|------|------|------|
