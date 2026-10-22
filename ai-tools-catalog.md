@@ -47,7 +47,7 @@
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
 | **markitdown** | ✅ 已安裝 | 微軟開源，把PDF/Office/影像/音訊/YouTube/網址等轉成Markdown供LLM讀取 | 免費開源MIT；選用Azure/LLM圖片描述功能才計費 | venv裝於~/cowork/tools/markitdown-venv，alias mid；YouTube抓現成字幕不跑whisper ||------|------|------|------|------|
 | **Claude Duet** | 🔍 待評估 | Anthropic 職場型 AI 代理人預覽版（官方產品，非 skill）：每日摘要、追蹤已連結 App、建儀表板、排會議、財務預測；主動提醒、離線續跑、行動前先確認 | Pro/Max 訂閱內（候補名單） | 2026-10-21 發布，獨立 App＋網站；競品 Meta Muse、OpenAI Dots；來源鉅亨 6635482 |
----
+| **NVIDIA USD BRep（SMLib）** | 🔍 待評估 | NVIDIA 開源的工業級 CAD 實體幾何核心（B-Rep/NURBS、布林運算、掃掠、質量計算，C++/Python，可匯出 STEP/OpenUSD），讓 AI 用程式碼直接建精確實體 | 免費（Apache 2.0） | CAD轉3D 參考；10/22 James 傳 FB 彭致華影片（鋼構 3 張圖→74 構件→穿梁孔檢核→35.4 噸） |---
 
 ## 狀態說明
 - ✅ 已安裝/可用
