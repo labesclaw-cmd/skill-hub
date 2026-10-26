@@ -25,7 +25,9 @@
 | **Claude.ai 畫布設計** | ⏳ 待處理 | 生成 PNG/PDF 視覺設計，海報/UI草稿/縮圖 | 免費 | 需在 claude.ai Cowork 安裝 |
 | **Claude.ai Brightdata插件** | ⏳ 待處理 | 40+網站爬蟲（YouTube/Amazon/TikTok），機器人繞過 | freemium | 大量爬蟲需付費 |
 | **text-to-cad** | 🔍 待評估 | 用講的叫 agent 寫 build123d/OpenCASCADE 程式出 STEP/STL/3MF/GLB，含製造檢查、工程圖（GitHub earthtojake/text-to-cad，2.3萬星） | 免費（MIT） | 10/26 James 傳 FB；可接 CAD轉3D 專案（退路本來就是 OCCT）；裝了要 uvx cadgen telemetry off |
-| **Graphify** | ✅ 已安裝 | 把程式碼庫建成知識圖譜，給 Claude 查程式結構 | 免費 | 10/26 上線每晚 03:30 graphify-nightly：~/cowork/scripts/graphify-out、~/projects/AI_Drama/tools/graphify-out |## 🌐 通用工具
+| **Graphify** | ✅ 已安裝 | 把程式碼庫建成知識圖譜，給 Claude 查程式結構 | 免費 | 10/26 上線每晚 03:30 graphify-nightly：~/cowork/scripts/graphify-out、~/projects/AI_Drama/tools/graphify-out |
+
+## 🌐 通用工具
 | **Claude.ai Postiz** | ⏳ 待處理 | 28+平台社群排程（YouTube/TikTok/Instagram等） | freemium | 需各平台 API Key |
 | **Claude.ai Searchfit SEO** | ⏳ 待處理 | 免費SEO工具組：審核、關鍵字、AI效果追蹤 | 免費 | 適合 YouTube SEO 使用 |
 
@@ -37,6 +39,7 @@
 | **Rapid-MLX** | ✅ 已安裝 | Apple Silicon 本地 LLM 推理，基於 MLX 框架，OpenAI-compatible API，比 Ollama 快 2-4x | 免費/開源 | v0.6.11，brew 安裝，qwen3.5-4b 已下載（168 tok/s），port 11435 |
 | **skilless.ai** | ✅ 已安裝 | 給 Claude Code 加上網頁搜尋、yt-dlp 字幕提取、RSS 解析能力 | 免費 | 一行安裝，已連結 ~/.claude/skills/ |
 | **notebooklm-py** | ✅ 已安裝 | 程式化操作 NotebookLM（list/ask/source add），讓 Claude 直接讀 James 的 YouTube 分析筆記本 | 免費 | 非官方 API；2026-10-02 登入過期需重登；帳號待 James 確認（chenyuchi09 需明確授權） |
+| **gpu-unlock (Zagitta)** | 🔍 待評估 | 解開 RTX 30 系家用卡 Tensor 核心 FP16/BF16 累加限速（3060 回報矩陣運算約 +80%）；只支援 Linux，Windows 為第三方 UEFI 分支 impacifist/Windows-GPU-UNLOCK | 免費 | 10/26 評估暫緩：桌機要關 Secure Boot、改開機鏈，遠端開不了機無人救；H3 是 INT8 可能不受惠；10/28 看 H3 加速節點結果再評（fu-175424d310e2） |
 
 ### 🎬 影片生成
 
@@ -45,6 +48,8 @@
 | **CapCut 剪映 Pro** | 🔍 待評估 | 一站式 AI 影片:AI配音、數位人avatar、字幕、剪輯、去背、縮圖;中文原生字節跳動;Web版可免費試做 | NT290月 或 NT2490年;Web免費可試 | 風管YouTube主力候選;先免費試做驗證中文專有名詞發音 |
 | **HeyGen** | 🔍 待評估 | 高擬真AI主播Avatar IV;175語言對嘴;有API可全自動化;約30分鐘月 | US29月 年繳US24 | 風管YouTube升級選項;有API我可串接自動產片 |
 | **Kling 3.0** | 🔍 待評估 | 圖或文字生角色;Subject Binding 跨鏡角色一致性最強5分;單段最長15秒;無中文配音需配HeyGen | 免費66credits日;Standard US6.99月年繳 | AI短劇方案A核心影片生成;台灣信用卡可付 |
+| **ComfyUI-MiniMaxH3Mod（H3 RefMod）** | ⏳ 待處理 | H3 免訓練角色參考：8 張多角度圖→約1MB refmod 檔，像 LoRA 一樣載入，可同時掛多角色，解雙女主混臉 | 免費（MIT） | github.com/Luisacaotica/ComfyUI-MiniMaxH3Mod；EP01 v3 拍完後裝桌機測 |
+| **MiniMax H3 Singularity ref2va v1.3** | 🔍 待評估 | 社群微調版 H3 參考生成模型；影片作者用 euler＋beta 取樣、Sage＋稀疏注意力加速 | 免費 | 10/26 解析 YT；與官方 ref2va 對照測試排在 EP01 v3 後 |
 
 ### 🖼️ 圖像生成
 
@@ -53,6 +58,8 @@
 | **Domo AI** | 🔍 待評估 | 上傳角色圖轉動畫Character-to-Video;動漫風格最佳;無中文配音無腳本流;真人感較弱 | Basic US6.99月年繳500credits | James指定納入;動漫短劇適用真人較弱 |
 | **Vidu** | 🔍 待評估 | 多參考圖最多7張角色一致;Reference-to-Video;每段5-8秒;有API | 免費800credits月離峰無限;Standard US10月 | AI短劇方案B角色一致補充;Stripe付款 |
 | **LTX Studio** | 🔍 待評估 | 最完整腳本到分鏡到影片流程;Elements角色場景庫跨鏡一致;個人無API | 免費800credits一次;Standard US28月年繳 | AI短劇方案B一站式腳本流 |
+| **Qwen-Image-Edit-2511 多角度 LoRA** | 🔍 待評估 | ComfyUI 相機控制（水平角／俯仰角／距離），一張乾淨場景圖轉出其他機位，同一場景多角度一致 | 免費（桌機跑） | 10/26 James 核准；已下載 E:\Claude\models\loras；輸出 1536x864 要再放大 |
+| **SeedVR2 放大工作流** | ⏳ 待處理 | ComfyUI 參考圖精細放大（補髮絲睫毛細節），參考圖越清楚影片越好 | 免費（桌機跑） | 10/26 James 核准；節點暫存 E:\Claude\dl，EP01 v3 拍完後裝（fu-da3786bbbd13）；12GB 選 3B GGUF＋blockswap |
 
 ### 📓 知識整理
 
@@ -71,4 +78,4 @@
 - ❌ 無法使用
 
 ---
-*最後更新：2026-05-06*
+*最後更新：2026-10-26*
