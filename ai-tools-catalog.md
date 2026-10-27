@@ -50,6 +50,7 @@
 | **Kling 3.0** | 🔍 待評估 | 圖或文字生角色;Subject Binding 跨鏡角色一致性最強5分;單段最長15秒;無中文配音需配HeyGen | 免費66credits日;Standard US6.99月年繳 | AI短劇方案A核心影片生成;台灣信用卡可付 |
 | **ComfyUI-MiniMaxH3Mod（H3 RefMod）** | ⏳ 待處理 | H3 免訓練角色參考：8 張多角度圖→約1MB refmod 檔，像 LoRA 一樣載入，可同時掛多角色，解雙女主混臉 | 免費（MIT） | github.com/Luisacaotica/ComfyUI-MiniMaxH3Mod；EP01 v3 拍完後裝桌機測 |
 | **MiniMax H3 Singularity ref2va v1.3** | 🔍 待評估 | 社群微調版 H3 參考生成模型；影片作者用 euler＋beta 取樣、Sage＋稀疏注意力加速 | 免費 | 10/26 解析 YT；與官方 ref2va 對照測試排在 EP01 v3 後 |
+| **TopView 3D Builder（3D 導演台／白模預演）** | 🔍 研究中 | 白模假人＋攝影機先擺站位與機位（Previz／blockout），拍成截圖或白模影片再交 AI 生成，鎖住人物位置 | TopView 畫布內建（開源 topview-3d-builder） | 10/27 研究：H3 線走『白模截圖→Qwen-Image-Edit 換成角色→H3 首尾幀』；TopView 線白模片當 Seedance reference_video 未驗證；見 wiki 2026-10-27_3D預演白模控制站位_research |
 
 ### 🖼️ 圖像生成
 
