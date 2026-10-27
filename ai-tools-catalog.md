@@ -58,8 +58,8 @@
 | **Domo AI** | 🔍 待評估 | 上傳角色圖轉動畫Character-to-Video;動漫風格最佳;無中文配音無腳本流;真人感較弱 | Basic US6.99月年繳500credits | James指定納入;動漫短劇適用真人較弱 |
 | **Vidu** | 🔍 待評估 | 多參考圖最多7張角色一致;Reference-to-Video;每段5-8秒;有API | 免費800credits月離峰無限;Standard US10月 | AI短劇方案B角色一致補充;Stripe付款 |
 | **LTX Studio** | 🔍 待評估 | 最完整腳本到分鏡到影片流程;Elements角色場景庫跨鏡一致;個人無API | 免費800credits一次;Standard US28月年繳 | AI短劇方案B一站式腳本流 |
-| **Qwen-Image-Edit-2511 多角度 LoRA** | 🔍 待評估 | ComfyUI 相機控制（水平角／俯仰角／距離），一張乾淨場景圖轉出其他機位，同一場景多角度一致 | 免費（桌機跑） | 10/26 James 核准；已下載 E:\Claude\models\loras；輸出 1536x864 要再放大 |
-| **SeedVR2 放大工作流** | ⏳ 待處理 | ComfyUI 參考圖精細放大（補髮絲睫毛細節），參考圖越清楚影片越好 | 免費（桌機跑） | 10/26 James 核准；節點暫存 E:\Claude\dl，EP01 v3 拍完後裝（fu-da3786bbbd13）；12GB 選 3B GGUF＋blockswap |
+| **Qwen-Image-Edit-2511 多角度 LoRA** | ✅ 已安裝（限構圖參考） | ComfyUI 相機控制（水平角／俯仰角／距離），一張乾淨場景圖轉出其他機位 | 免費（桌機跑） | 10/27 實測：一張約 55 秒、VRAM 11.4GB、輸出 1328x800；同一間房的感覺在但細節會變（櫃台長度、酒罈架、窗門），只當機位草圖，見 wiki 2026-10-27_SeedVR2與多角度LoRA桌機實測 |
+| **SeedVR2 放大工作流** | ✅ 已安裝 | ComfyUI 參考圖精細放大（補髮絲睫毛細節），參考圖越清楚影片越好 | 免費（桌機跑） | 10/27 裝好實測：3B Q8 GGUF＋blocks_to_swap 32，2× 放大 40 秒、VRAM 6.3GB，木紋罈面明顯變銳利；原圖瑕疵會一起保留 |
 
 ### 📓 知識整理
 
