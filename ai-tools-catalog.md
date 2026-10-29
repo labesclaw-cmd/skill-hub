@@ -51,6 +51,7 @@
 | **ComfyUI-MiniMaxH3Mod（H3 RefMod）** | ⏳ 待處理 | H3 免訓練角色參考：8 張多角度圖→約1MB refmod 檔，像 LoRA 一樣載入，可同時掛多角色，解雙女主混臉 | 免費（MIT） | github.com/Luisacaotica/ComfyUI-MiniMaxH3Mod；EP01 v3 拍完後裝桌機測 |
 | **MiniMax H3 Singularity ref2va v1.3** | 🔍 待評估 | 社群微調版 H3 參考生成模型；影片作者用 euler＋beta 取樣、Sage＋稀疏注意力加速 | 免費 | 10/26 解析 YT；與官方 ref2va 對照測試排在 EP01 v3 後 |
 | **TopView 3D Builder（3D 導演台／白模預演）** | 🔍 研究中 | 白模假人＋攝影機先擺站位與機位（Previz／blockout），拍成截圖或白模影片再交 AI 生成，鎖住人物位置 | TopView 畫布內建（開源 topview-3d-builder） | 10/27 研究：H3 線走『白模截圖→Qwen-Image-Edit 換成角色→H3 首尾幀』；TopView 線白模片當 Seedance reference_video 未驗證；見 wiki 2026-10-27_3D預演白模控制站位_research |
+| **Wan 2.2 Animate（ComfyUI 人物替換）** | 🔍 待評估 | 給一張人物照＋一支舊影片，把片中人換成新角色，動作、表情、嘴型照原片，光線自動配合 | 免費（本地） | 10/29 客棧 EP01 換新林小滿備案；桌機 12GB 跑縮小版，估每 5 秒 10～20 分鐘；模型裝 E 槽 |
 
 ### 🖼️ 圖像生成
 
