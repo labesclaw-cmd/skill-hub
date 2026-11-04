@@ -15,6 +15,7 @@
 | **context7 MCP** | ✅ 已安裝 | 即時文件查詢 | 免費 | |
 | **chrome-devtools MCP** | ✅ 已安裝 | Chrome 瀏覽器控制 v0.21.0 | 免費 | |
 | **Claude.ai /mcp-builder** | ⏳ 待處理 | 建立 MCP Server 的 Skill，Python/Node 皆支援 | 免費 | 需在 claude.ai Cowork 安裝 |
+| **mcp-for-blender (Blender MCP)** | ✅ 已安裝 | 讓 Claude 透過 MCP 操作 Blender（建物件、材質、打光、截圖、執行 Python）；33k星、MIT | 免費 | 11/04 裝在 ~/projects/CAD轉3D（專案範圍 .mcp.json，釘 2.2.1、DISABLE_TELEMETRY=true）；Blender 5.2 外掛已啟用、開 Blender 自動在 9876 起服務；配 arjun988/blender-skills（94 技能，同專案 .claude/skills） |
 ### 🧠 Skill Hub
 
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
