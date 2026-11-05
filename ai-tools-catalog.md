@@ -30,6 +30,7 @@
 | **Graphify** | ✅ 已安裝 | 把程式碼庫建成知識圖譜，給 Claude 查程式結構 | 免費 | 10/26 上線每晚 03:30 graphify-nightly：~/cowork/scripts/graphify-out、~/projects/AI_Drama/tools/graphify-out |
 | **claude-mem** | 🔍 待評估 | 自動記錄 session 工具使用與決策，AI 壓縮後存 SQLite+Chroma，下次注入；6 個 lifecycle hooks＋本機 worker＋MCP 搜尋 | 開源 Apache2；壓縮預設雲端 observer 30 天試用，之後吃 Anthropic 方案額度或自備 OpenRouter/Gemini key | 10/30 評估：暫不裝——與現有 memory/basic-memory/session_notes 重疊、每次工具呼叫多跑 hook、會吃週額度、預設送雲端需關 opt-in |
 | **arjun988/blender-skills** | 🔍 待評估 | 94個Blender技能（總導演分派建模/UV/材質/打光/相機/匯出Unity·Unreal·Godot），需Blender MCP；MIT、1.7k星、v1.3.0、最後更新2026-07 | 免費 | 11/04評估：偏遊戲資產，內容是檢查表沒有腳本；客棧白模首幀已用自寫blockout.py（Blender CLI），暫不裝；camera-cinematography鏡頭焦段表可參考 |
+| **youtube-agent-skill** | evaluating | 11 個 Claude skill：腳本鉤子、標題封面、SEO、章節、留言、Shorts 切點、留存分析、爆款對照；只寫不發布（github.com/Jakeschincariol/youtube-agent-skill，4.6k★，MIT） | 免費 | 11/05 James 從 FB 短片問；建議先審程式碼再小試 yt-package/yt-retention/yt-shorts |
 
 ## 🌐 通用工具
 | **Claude.ai Postiz** | ⏳ 待處理 | 28+平台社群排程（YouTube/TikTok/Instagram等） | freemium | 需各平台 API Key |
