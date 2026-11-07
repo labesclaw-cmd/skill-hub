@@ -17,6 +17,7 @@
 | **Claude.ai /mcp-builder** | ⏳ 待處理 | 建立 MCP Server 的 Skill，Python/Node 皆支援 | 免費 | 需在 claude.ai Cowork 安裝 |
 | **mcp-for-blender (Blender MCP)** | ✅ 已安裝 | 讓 Claude 透過 MCP 操作 Blender（建物件、材質、打光、截圖、執行 Python）；33k星、MIT | 免費 | 11/04 裝在 ~/projects/CAD轉3D（專案範圍 .mcp.json，釘 2.2.1、DISABLE_TELEMETRY=true）；Blender 5.2 外掛已啟用、開 Blender 自動在 9876 起服務；配 arjun988/blender-skills（94 技能，同專案 .claude/skills） |
 | **CodeGraph** | 🔍 待評估 | colbymchenry/codegraph：預先建好專案的函式呼叫關係圖，Claude Code／Codex 透過 MCP 查圖，少搜尋少讀檔；官方實測 token 少約六成，Python（Django）只省 13% | 免費（MIT 開源，本機跑） | 11/04 James 問；評估：有幫助但不大，建議 EP05v4 交片後只接 Claude Code 試裝 scripts＋loop，排除 .loop/wt；遙測要關；先不接 Codex |
+| **CodeGraph** | ✅ 已安裝 | 程式碼知識圖譜 CLI（callers/callees/impact/context）；npm @colbymchenry/codegraph 1.6.2，MIT | 免費 | 11/07 試裝：telemetry off；已 init ~/cowork/loop、~/cowork/scripts（.codegraph/ 進 .git/info/exclude）。callers/impact 結構查詢準；自然語言 context 2 次 1 半中 1 錯，不比 grep 省。只留 CLI，不裝 MCP、不接 Codex；改碼後 codegraph sync |
 ### 🧠 Skill Hub
 
 | 工具 | 狀態 | 特色 | 費用 | 備註 |
