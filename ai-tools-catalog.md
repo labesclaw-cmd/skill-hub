@@ -33,6 +33,7 @@
 | **arjun988/blender-skills** | 🔍 待評估 | 94個Blender技能（總導演分派建模/UV/材質/打光/相機/匯出Unity·Unreal·Godot），需Blender MCP；MIT、1.7k星、v1.3.0、最後更新2026-07 | 免費 | 11/04評估：偏遊戲資產，內容是檢查表沒有腳本；客棧白模首幀已用自寫blockout.py（Blender CLI），暫不裝；camera-cinematography鏡頭焦段表可參考 |
 | **youtube-agent-skill** | evaluating | 11 個 Claude skill：腳本鉤子、標題封面、SEO、章節、留言、Shorts 切點、留存分析、爆款對照；只寫不發布（github.com/Jakeschincariol/youtube-agent-skill，4.6k★，MIT） | 免費 | 11/05 James 從 FB 短片問；建議先審程式碼再小試 yt-package/yt-retention/yt-shorts |
 | **teardown** | 🔍 待評估 | 白話描述機器→three.js 單頁 3D 模擬器，可拆解／剖視（玻璃/剖面/實心）、自動導覽、逐幀錄 60fps 影片 | 免費(MIT) | elvarofficial/teardown 2.6k★；需 Node20+、playwright、ffmpeg；適合風管小知識 3D 教學片，CAD 客戶版只借剖視/拆解手法 |
+| **text-to-cad** | ⏳ 待處理 | 一句話生 3D 零件（build123d+OpenCASCADE），出 STEP/STL/GLB/DXF、工程圖 PDF、可製造性與應力檢查；Claude Code plugin＋MCP | 免費（MIT） | github earthtojake/text-to-cad 2.6萬星；裝法 --only claude --no-telemetry；外部安裝腳本被自動權限擋，待 James 用 ! 執行 |
 
 ## 🌐 通用工具
 | **Claude.ai Postiz** | ⏳ 待處理 | 28+平台社群排程（YouTube/TikTok/Instagram等） | freemium | 需各平台 API Key |
